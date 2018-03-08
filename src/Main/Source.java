@@ -1,18 +1,15 @@
+package Main;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
-
+import VideoHeader.*;
 import org.jcodec.codecs.h264.H264Decoder;
-
-import org.jcodec.common.io.NIOUtils;
+import org.jcodec.common.io.FileChannelWrapper;
+import org.jcodec.containers.mkv.demuxer.MKVDemuxer;
 import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
-import org.jcodec.containers.mxf.MXFDemuxer;
-import org.jcodec.containers.webp.WebpDemuxer;
-import org.jcodec.containers.y4m.Y4MDemuxer;
-
-import static java.io.FileDescriptor.in;
 
 public class Source
 {
@@ -28,7 +25,7 @@ public class Source
         source.dologin();
 
 
-        H264Decoder decoder = new H264Decoder();
+
     }
 
     public void display()
@@ -123,22 +120,25 @@ public class Source
         @Override
         public void run() {
             OutputStream out = null;
-            File file = new File("E:\\stream.raw");
+           /*File file = new File("E:\\stream.raw");
             try {
                   out = new FileOutputStream(file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+            */
             while(true) {
         byte [] revByte = new byte[1024];
              try {
                 Thread.sleep(0);
 
-                 //revDataFromServer();
+                ReadeInfo();
 
-              dis.read(revByte);
-                 out.write(revByte);
-              //   System.out.println(bytesToHex(revByte));
+
+                return;
+             // dis.read(revByte);
+               //  out.write(revByte);
+             //   System.out.println(bytesToHex(revByte));
 
 
 
@@ -150,15 +150,51 @@ public class Source
          }
         }
     }
+    public void ReadeInfo() throws IOException {
+        TLV_V_StreamDataFormat tlv_Format = new TLV_V_StreamDataFormat();
+        VideoHeader viHeader = tlv_Format.videoFormat;
+        AudioHeader auHeader = tlv_Format.audioFormat;
+        // readJPG();
+        tlv_Format.videoChannel = dis.readByte();
+        tlv_Format.audioChannel = dis.readByte();
+        tlv_Format.dataType = dis.readByte();
+        tlv_Format.reserve = dis.readByte();
+        viHeader.codeid = dis.readInt();
+        viHeader.bitrate = dis.readShort();
+        viHeader.width = dis.readShort();
+        viHeader.height = dis.readShort();
+        viHeader.framerate = dis.readByte();
+        viHeader.colorDepth = dis.readByte();
+        viHeader.reserve = dis.readShort();
+        auHeader.samplesPerSecond = dis.readInt();
+        auHeader.bitrate = dis.readInt();
+        auHeader.waveFormat = dis.readShort();
+        auHeader.chanelNumber = dis.readShort();
+        auHeader.blockAlign = dis.readShort();
+        auHeader.bitsPerSample = dis.readShort();
+        auHeader.frameInterval = dis.readShort();
+        auHeader.reserve = dis.readShort();
+
+        System.out.println(tlv_Format.toString());
+
+
+        H264Decoder decoder = new H264Decoder();;
+        FileChannelWrapper source = new FileChannelWrapper(dis);
+        MP4Demuxer dem =   MP4Demuxer.createMP4Demuxer( source);
+        return ;
+    }
     public void revDataFromServer() throws IOException
     {
 
-      // readJPG();
-    while (true)
+
+
+        /*
+        while (true)
         {
             System.out.println(dis.readByte()); // videoChannel
             System.out.println(dis.readByte()); // audioChannel
             System.out.println(dis.readByte()); // dataType
+
             System.out.println(dis.readByte()); // reserve
             System.out.println(dis.readInt());  // codeid
             System.out.println(dis.readShort());  // bitrate
@@ -169,7 +205,7 @@ public class Source
             System.out.println(dis.readShort()); // reserve
 
         }
-
+        */
     }
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
@@ -185,6 +221,7 @@ public class Source
        String str = "0000004800000000280004000500000029003800";
         return hexStringToByteArray(str);
     }
+
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -195,9 +232,6 @@ public class Source
         }
         return new String(hexChars);
     }
-    //0000000048000000002800040005000000290038007573657200000000000000000000000000000000000000000000000000000000313130320000000000000000000000000000000000010000
 
-    int counter = 0;
-    BufferedImage image;
 
 }

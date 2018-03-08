@@ -3,26 +3,17 @@ package VideoHeader;
 public class VideoHeader {
 
     // video format
-    public byte videoChannel;
-    public byte audioChannel;
-    public byte dataType;
-    public byte reserve;
+    public short reserve;
     public int codeid;
     public short bitrate;
     public short width;
     public short height;
     public byte framerate;
     public byte colorDepth;
-
-    // audio format
-    public int samplesPerSecond;
-    public int audioBitrate;
-    public byte waveFormat;
-    public short chanelNumber;
-    public short chanelNumberl;
-    public short blockAlign;
-    public short bitsPerSample;
-    public short  frameInterval;
+    public String toString()
+    {
+        return "codeID: "+this.codeid+", bitrate: "+this.bitrate+", width: "+this.width+", height: "+this.height+", framerate:"+this.framerate+", colorDepth: "+this.colorDepth+", reserver: "+this.reserve;
+    }
 
 
 
